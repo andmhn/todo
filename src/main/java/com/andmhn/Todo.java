@@ -6,10 +6,11 @@ import java.nio.file.*;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class Todo {
     private final Path todoFilePath;
-    private final List<String> tasks = new ArrayList<>();
+    private List<String> tasks = new ArrayList<>();
 
     Todo() {
         String todoDir = System.getenv("TODO_DIR");
@@ -63,7 +64,7 @@ public class Todo {
                 if (currLine.trim().isEmpty()) {
                     continue;
                 }
-                tasks.add(currLine);
+                tasks.add(currLine.trim());
             }
         } catch (IOException x) {
             System.err.format("IOException: %s%n", x);
@@ -72,14 +73,53 @@ public class Todo {
 
     private void writeTasksToFile(){
         // accumulate
-        String reducedTasks = tasks.stream().reduce((a, b) -> a + "\n" + b).get();
+        Optional<String> reducedTasks = tasks.stream().reduce((a, b) -> a + "\n" + b);
+        if (reducedTasks.isEmpty()) return;
 
         try (OutputStream outputStream = new BufferedOutputStream(
                 Files.newOutputStream(todoFilePath, CREATE, WRITE))) {
-            outputStream.write(reducedTasks.getBytes(), 0, reducedTasks.length());
+            outputStream.write(reducedTasks.get().getBytes(), 0, reducedTasks.get().length());
         } catch (IOException x) {
             System.err.format("IOException: %s%n", x);
         }
     }
 
+    public void archiveCompletedTasks(){
+        Optional<String> completedTasks = tasks.stream()
+                .filter(a -> a.startsWith("x"))
+                .reduce((a, b) -> a + "\n" + b);
+        if (completedTasks.isEmpty()){
+            System.out.println("There's no completed task!");
+            return;
+        }
+        Path archiveFile = todoFilePath.getParent().resolve("archive.txt");
+        try (OutputStream outputStream = new BufferedOutputStream(
+                Files.newOutputStream(archiveFile, CREATE, APPEND))) {
+            outputStream.write('\n');   // make sure to always start at new line
+            outputStream.write(completedTasks.get().getBytes(), 0, completedTasks.get().length());
+            // delete file to remove previous content
+            Files.delete(todoFilePath);
+        } catch (IOException x) {
+            System.err.format("IOException: %s%n", x);
+        }
+        // also remove it from current tasks
+        tasks = tasks.stream().filter(a -> !a.startsWith("x")).toList();
+        writeTasksToFile();
+        System.out.println("Archived!");
+    }
+
+    public void deleteTask(int taskNo) {
+        int taskArrayPos = taskNo - 1;
+        System.out.println("Removing: " + tasks.get(taskArrayPos));
+        tasks.remove(taskArrayPos);
+
+        // rewrite file
+        try {
+            Files.delete(todoFilePath);
+        } catch (IOException x) {
+            System.err.format("IOException: %s%n", x);
+        }
+        writeTasksToFile();
+        System.out.println("Removed!");
+    }
 }

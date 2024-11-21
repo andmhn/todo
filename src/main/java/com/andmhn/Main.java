@@ -3,8 +3,8 @@ package com.andmhn;
 import java.util.Arrays;
 
 public class Main {
-    private static final String[] operandArgs = {"do", "add"};
-    private static final String[] singleArgs = {"help", "ls", "sort", "archive"};
+    private static final String[] operandArgs = {"do", "add", "del"};
+    private static final String[] singleArgs = {"help", "ls", "sort", "archive", "today"};
 
     private static final Todo todo = new Todo();
 
@@ -17,6 +17,7 @@ public class Main {
                     todo archive        moves completed task to archive.txt in TODO_DIR
                     todo help           show this help text
                     todo do <Number>    Mark complete the selected task
+                    todo del <Number>   Delete the selected task
                     todo add <args..>   Adds new task to todo.txt
                 """;
         System.err.println(msg);
@@ -34,6 +35,9 @@ public class Main {
                 break;
             case "sort":
                 todo.sortTasks();
+                break;
+            case "archive":
+                todo.archiveCompletedTasks();
                 break;
             case "help":
                 printUsage();
@@ -62,6 +66,9 @@ public class Main {
                 break;
             case "do":
                 todo.markDone(Integer.parseInt(args[1]));
+                break;
+            case "del":
+                todo.deleteTask(Integer.parseInt(args[1]));
                 break;
             default:
                 handleUnknownArg(args[0]);
