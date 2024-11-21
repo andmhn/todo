@@ -63,7 +63,7 @@ public class Todo {
                 if (currLine.trim().isEmpty()) {
                     continue;
                 }
-                tasks.add(currLine);
+                tasks.add(currLine.trim());
             }
         } catch (IOException x) {
             System.err.format("IOException: %s%n", x);
