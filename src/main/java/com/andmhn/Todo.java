@@ -29,7 +29,15 @@ public class Todo {
 
     public void listLines() {
         for (int i = 0; i < tasks.size(); i++) {
-            System.out.println(i + 1 + " " + tasks.get(i));
+            String line = tasks.get(i);
+            if(line.startsWith("x")){
+                line = Color.RED + "x" + Color.RESET + line.substring(1);
+            } else if(line.startsWith("(A)")){
+                line = Color.YELLOW_BRIGHT + line + Color.RESET;
+            } else if(line.startsWith("(B)")){
+                line = Color.GREEN + line + Color.RESET;
+            }
+            System.out.println(Color.BLUE + (i + 1) + Color.RESET + " " + line);
         }
     }
 
